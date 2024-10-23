@@ -32,10 +32,12 @@ void alterar_musica(); // Altera uma musica
 int op_alterar(int op, int indice); // Dispara a opção de alteração
 void alterar_artista(int indice); // Altera o artista
 void alterar_genero(int indice); // Altera o genero
-void excluir_musica(); // Exclui uma musica
+void op_excluir(); // Exclui uma musica
 int validarTempo(int min, int seg); // Valida o tempo
 void limparMemoria(); // Limpa a memória alocada
 void limparMusica(TMusica *music); // Limpa a memória das músicas
+void limparArtista(TMusica *music); // Limpa a memória dos artistas
+void limparGenero(TMusica *music); // Limpa a memória dos generos
 void valida_alocacao(void *v); // Valida a alocação de memória
 
 TMusica *_playList;
@@ -79,7 +81,7 @@ void op_menu(int option){
         alterar_musica();
         break;
     case 4:
-        excluir_musica();
+        op_excluir();
         break;
     case 0:
         printf("Saindo...");
@@ -90,7 +92,7 @@ void op_menu(int option){
     }
 }
 
-void excluir_musica(){
+void op_excluir(){
     int indice;
     char opSn = 'x';
 
@@ -125,15 +127,12 @@ void excluir_musica(){
 
         if(opSn == 's'){
             if(indice >= 1 && indice <= _numMusicas){
-                for(int i = indice - 1; i < _numMusicas - 1; i++){
-                    _playList[i] = _playList[i + 1];
-                }
-                _numMusicas--;
-                _playList = (TMusica*)realloc(_playList, _numMusicas * sizeof(TMusica));
+                excluir_musica(indice);
                 system("cls");
                 printf("Musica exluida com sucesso!\n\n");
             } else{
                 printf("**Musica inexistente!**\n");
+                system("pause");
                 return;
             }
             system("pause");
@@ -141,6 +140,15 @@ void excluir_musica(){
             return;
         }
     }
+}
+
+void excluir_musica(int indice){
+    for(int i = indice - 1; i < _numMusicas - 1; i++){
+        _playList[i] = _playList[i + 1];
+    }
+    _numMusicas--;
+    _playList = (TMusica*)realloc(_playList, _numMusicas * sizeof(TMusica));
+
 }
 
 void op_listar(){
@@ -158,11 +166,9 @@ void op_listar(){
         return;
     }
 
-    printf("- (1) Exibir TODAS as musicas\n");
-    printf("- (2) Exibir APENAS UMA musica\n");
-    printf("- (3) Voltar para o menu anterior\n\n");
-    printf("** Digite a opcao: ");
+    menu_listar();
     scanf("%d", &op);
+    fflush(stdin);
     system("cls");
 
     if(op == 1){
@@ -171,12 +177,13 @@ void op_listar(){
         do{
             printf("Qual musica deseja exibir [%d-%d]: ", 1, _numMusicas);
             scanf("%d", &indice);
+            fflush(stdin);
             if(indice <= _numMusicas && indice >= 1){
                 system("cls");
                 printf("*** Musica [%d] ***\n", indice);
                 exibeMusica(_playList[indice - 1]);
             } else{
-                printf("***MUSICA INVALIDA***\n\n");
+                printf("***MUSICA INVALIDA!***\n\n");
             }
         } while(indice > _numMusicas || indice < 1);
     } else if(op == 3){
@@ -186,6 +193,13 @@ void op_listar(){
     }
 
     system("pause");
+}
+
+void menu_listar(){
+    printf("- (1) Exibir TODAS as musicas\n");
+    printf("- (2) Exibir APENAS UMA musica\n");
+    printf("- (3) Voltar para o menu anterior\n\n");
+    printf("** Digite a opcao: ");
 }
 
 void listarMusica(){
@@ -236,6 +250,9 @@ void incluirMusica(){
     valida_alocacao(&_playList[_numMusicas]);
     _playList[_numMusicas] = criarMusica();
     _numMusicas++;
+
+    printf("** Musica adcionada com sucesso! **\n");
+    system("pause");
 }
 
 TMusica criarMusica(){
@@ -555,15 +572,22 @@ void limparMemoria(){
 void limparMusica(TMusica *music){
     free(music->titulo);
     free(music->album);
+    limparArtista(music);
+    limparGenero(music);
+    free(music->genero);
+}
+
+void limparArtista(TMusica *music){
     for(int i = 0; i < music->num_artista; i++){
         free(music->artista[i]);
     }
     free(music->artista);
-    
+}
+
+void limparGenero(TMusica *music){
     for(int i = 0; i < music->num_genero; i++){
         free(music->genero[i]);
     }
-    free(music->genero);
 }
 
 void valida_alocacao(void *v){
